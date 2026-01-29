@@ -300,7 +300,34 @@ particles.forEach((p, i) => {
             document.getElementById("top10").innerHTML = html;
         }
 
+// --- SOPORTE PARA CELULARES (TOUCH) ---
+canvas.addEventListener('touchmove', function(e) {
+    // Evita que la pantalla se mueva arriba/abajo mientras juegas
+    e.preventDefault(); 
+    
+    // Obtiene la posición del toque relativa al canvas
+    let touch = e.touches[0];
+    let rect = canvas.getBoundingClientRect();
+    let touchY = touch.clientY - rect.top;
+
+    // Ajusta la posición de la pistola (centrada en el dedo)
+    player.y = touchY - (player.height / 2);
+
+    // Limites para que la pistola no se salga del cuadro verde
+    if (player.y < 0) player.y = 0;
+    if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
+}, { passive: false });
+
+// Disparo automático al tocar la pantalla
+canvas.addEventListener('touchstart', function(e) {
+    if (gameActive) {
+        // Aquí puedes llamar a tu función de disparar
+        disparar(); 
+    }
+});
+
         requestAnimationFrame(drawLoop);
     </script>
 </body>
+
 </html>
