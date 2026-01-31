@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shoot The Block | 1.1 patch</title>
+    <link rel="icon" href="tu_logo.png" type="image/png">
+    <style>
+        body { margin: 0; background-color: #111; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        canvas { border: 3px solid #3584b9; background-color: #000; box-shadow: 0 0 20px rgba(38, 99, 141, 0.5); cursor: crosshair; }
+        #ui { margin-bottom: 10px; font-size: 24px; font-weight: bold; }
+        
+        #menuInicio, #leaderboardUI {
+            position: absolute; width: 400px; padding: 20px;
+            background: rgba(10, 30, 10, 0.95); z-index: 1000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            border: 3px solid #2ecc71; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; text-align: center; border-radius: 15px;
+        }
+
+        /* Definimos la animación de movimiento */
+@keyframes flotar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); } /* Sube 15 píxeles */
+    100% { transform: translateY(0px); }
+}
+
+/* Aplicamos la animación a una clase nueva */
+.logo-animado {
+    animation: flotar 3s ease-in-out infinite;
+    /* Esto quita lo opaco y hace que los colores resalten */
+    filter: brightness(1.2) drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+    
+    /* Aseguramos que la opacidad del padre no le afecte */
+    opacity: 1 !important; 
+}
+
+
+    </style>
+</head>
+<body>
+
+    <div id="menuInicio">
+    <img src="tu_logo.png" alt="Logo" class="logo-animado" style="width: 180px; margin-bottom: 20px;">
+    
+    <p style="color: #f1c40f; margin-bottom: 20px;">v1.1 - LOCAL PATCH</p>
+    
+    <button onclick="cerrarMenu()" style="padding: 15px 40px; font-size: 20px; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 50px; font-weight: bold;">
+        ¡A JUGAR!
+    </button>
+</div>
+    <div id="leaderboardUI" style="display:none;">
+        <h2 style="color: #e74c3c;">¡FIN DEL JUEGO!</h2>
+        <p id="finalScoreText" style="font-size: 20px; margin-bottom: 15px;"></p> 
+        <button onclick="guardarLocal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px; font-weight: bold;">Guardar Récord</button>
+        <button onclick="location.reload()" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Reiniciar</button>
+    </div>
+
+    <div id="ui">PUNTOS: <span id="score">0</span></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreEl = document.getElementById("score");
+
+        canvas.width = 800;
+        canvas.height = 400;
+
+        let score = 0;
+        let health = 100;
+        let gameActive = false;
+        let fondoX = 0;
+        let enemies = [];
+        let bullets = [];
+        let particles = [];
+        let lastEnemy = 0;
+
+        let highScore = localStorage.getItem('shootTheBlock_HighScore') || 0;
+
+        const player = { x: 50, y: 170, width: 80, height: 60, speed: 4, lastShot: 0 };
+
+        const imgFondo = new Image(); imgFondo.src = "fondo.png";
+        const imgPlayer = new Image(); imgPlayer.src = "pistola.png";
+        const imgEnemy = new Image(); imgEnemy.src = "enemigo.png";
+
+        const keys = {};
+        window.addEventListener("keydown", (e) => keys[e.code] = true);
+        window.addEventListener("keyup", (e) => keys[e.code] = false);
+
+        function crearExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    size: Math.random() * 5 + 2,
+                    vida: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function disparar() {
+            const now = Date.now();
+            if (now - player.lastShot > 250) {
+                bullets.push({ x: player.x + player.width - 10, y: player.y + 22 });
+                player.lastShot = now;
+            }
+        }
+
+        function update(time) {
+            if (!gameActive) return;
+
+            fondoX -= 1;
+            if (fondoX <= -canvas.width) fondoX = 0;
+
+            if (keys["ArrowUp"] && player.y > 0) player.y -= player.speed;
+            if (keys["ArrowDown"] && player.y < canvas.height - player.height) player.y += player.speed;
+            if (keys["Space"]) disparar();
+
+            if (time - lastEnemy > 1200) {
+                enemies.push({ x: canvas.width, y: Math.random() * (canvas.height - 50), size: 50, speed: 4.5 });
+                lastEnemy = time;
+            }
+
+            bullets.forEach((b, i) => {
+                b.x += 12;
+                if (b.x > canvas.width) bullets.splice(i, 1);
+            });
+
+            enemies.forEach((e, i) => {
+                e.x -= e.speed;
+                if (e.x < player.x + player.width && e.x + e.size > player.x && e.y < player.y + player.height && e.y + e.size > player.y) {
+                    health -= 20;
+                    crearExplosion(e.x, e.y, "#e74c3c");
+                    enemies.splice(i, 1);
+                    if (health <= 0) morir();
+                }
+
+                bullets.forEach((b, j) => {
+                    if (b.x < e.x + e.size && b.x + 10 > e.x && b.y < e.y + e.size && b.y + 5 > e.y) {
+                        crearExplosion(e.x + e.size/2, e.y + e.size/2, "#ff4400");
+                        enemies.splice(i, 1);
+                        bullets.splice(j, 1);
+                        score += 10;
+                        scoreEl.innerText = score;
+                    }
+                });
+                if (e.x + e.size < 0) enemies.splice(i, 1);
+            });
+        }
+
+       function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fondo
+    if (imgFondo.complete) {
+        // Si la imagen cargó, dibujamos SOLO la imagen
+        ctx.drawImage(imgFondo, fondoX, 0, canvas.width, canvas.height);
+        ctx.drawImage(imgFondo, fondoX + canvas.width, 0, canvas.width, canvas.height);
+    } 
+    else {
+        // SOLO si la imagen NO cargó, dibujamos el color y la rejilla
+        ctx.fillStyle = "#050a05"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Mueve el bucle de la rejilla AQUÍ ADENTRO
+        ctx.strokeStyle = "#0d1a0d"; 
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < canvas.width; x += 30) {
+            ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        }
+        for (let y = 0; y < canvas.height; y += 30) {
+            ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        }
+        ctx.stroke();
+    }
+
+    // El resto de los textos y objetos van después de cerrar el ELSE
+    ctx.fillStyle = "white";
+    ctx.font = "bold 20px Arial";
+    // ... resto del código
+
+            // 3. TEXTOS DE INTERFAZ
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px Arial";
+            ctx.fillText("Puntos: " + score, 20, 40);
+            ctx.fillStyle = "#FFD700";
+            ctx.fillText("Récord: " + highScore, 20, 70);
+
+            // 4. JUGADOR, BALAS Y ENEMIGOS
+            if (imgPlayer.complete) ctx.drawImage(imgPlayer, player.x, player.y, player.width, player.height);
+
+            ctx.fillStyle = "#ffcc00";
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 5));
+
+            enemies.forEach(e => {
+                if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.size, e.size);
+            });
+
+            // 5. PARTÍCULAS
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.vida -= 0.02;
+                if (p.vida <= 0) { particles.splice(i, 1); return; }
+                ctx.save();
+                ctx.globalAlpha = p.vida;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.restore();
+            });
+
+            // 6. BARRA DE VIDA
+            ctx.fillStyle = "#333";
+            ctx.fillRect(canvas.width - 220, 20, 200, 15);
+            ctx.fillStyle = health > 30 ? "#2ecc71" : "#e74c3c";
+            ctx.fillRect(canvas.width - 220, 20, (health / 100) * 200, 15);
+        } // <--- AQUÍ TERMINA LA FUNCIÓN DRAW CORRECTAMENTE
+
+        function drawLoop(time) {
+            update(time);
+            draw();
+            requestAnimationFrame(drawLoop);
+        }
+
+        function cerrarMenu() {
+            document.getElementById("menuInicio").style.display = "none";
+            gameActive = true;
+        }
+
+        function morir() {
+            gameActive = false; 
+            const menuMuerte = document.getElementById("leaderboardUI");
+            menuMuerte.style.display = "flex"; 
+            verificarRecord();
+            
+            const finalScoreDisplay = document.getElementById("finalScoreText");
+            if(finalScoreDisplay) {
+                finalScoreDisplay.innerHTML = "PUNTAJE FINAL: " + score;
+            }
+        }
+
+        function verificarRecord() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('shootTheBlock_HighScore', highScore);
+            }
+        }
+
+        function guardarLocal() {
+            verificarRecord();
+            alert("¡Récord Guardado! Tu mejor puntuación es: " + highScore);
+            location.reload();
+        }
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            let touch = e.touches[0];
+            let rect = canvas.getBoundingClientRect();
+            let touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+            player.y = touchY - (player.height / 2);
+            disparar();
+        }, { passive: false });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameActive && document.getElementById("menuInicio").style.display !== "none") cerrarMenu();
+            disparar();
+        });
+
+        requestAnimationFrame(drawLoop);
+    </script>
+</body>
+</html>
