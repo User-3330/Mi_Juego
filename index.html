@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shoot The Block | 1.2 </title>
+    <title>Shoot The Block | 1.2 LEGENDARY</title>
     <link rel="icon" href="tu_logo.png" type="image/png">
     <style>
         body { margin: 0; background-color: #111; color: white; font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
@@ -13,7 +13,7 @@
             image-rendering: pixelated; 
         }
         
-        #menuInicio, #leaderboardUI {
+        #menuInicio, #leaderboardUI, #menuVersión {
             position: absolute; width: 340px; padding: 20px;
             background: rgba(10, 30, 10, 0.95); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; 
@@ -28,7 +28,7 @@
         .logo-animado { animation: flotar 3s ease-in-out infinite; filter: brightness(1.2); }
 
         .leaderboard-table {
-            width: 100%; margin: 15px 0; border-collapse: collapse; font-size: 14px;
+            width: 100%; margin: 10px 0; border-collapse: collapse; font-size: 14px;
         }
         .leaderboard-table th { color: #f1c40f; border-bottom: 2px solid #2ecc71; padding: 5px; }
         .leaderboard-table td { padding: 5px; border-bottom: 1px solid rgba(46, 204, 113, 0.2); }
@@ -37,30 +37,50 @@
             padding: 10px; width: 80%; border-radius: 5px; border: 2px solid #2ecc71;
             background: #111; color: white; text-align: center; font-size: 16px; margin-bottom: 15px;
         }
+
+        .btn-interactivo {
+            padding: 10px 20px; background: #2ecc71; color: white; border: none;
+            border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+        .btn-version {
+            background: #34495e; color: #ecf0f1; border-radius: 5px; font-size: 12px; padding: 5px 10px;
+            cursor: pointer; border: 1px solid #7f8c8d; margin-top: 10px;
+        }
+        .changelog-list { text-align: left; font-size: 13px; color: #ddd; padding-left: 20px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
     <div id="menuInicio">
-        <img src="tu_logo.png" alt="Logo" class="logo-animado" style="width: 120px; margin-bottom: 10px;">
-        <p style="color: #f1c40f; margin: 0 0 10px 0; font-weight: bold;">v1.2 - Tablas de Clasificación</p>
+        <img src="tu_logo.png" alt="Logo" class="logo-animado" style="width: 100px; margin-bottom: 5px;">
+        <p style="color: #f1c40f; margin: 0 0 5px 0; font-weight: bold;">v1.2</p>
         
         <h3 style="margin: 5px 0; color: #2ecc71;">🏆 TOP 5 GLOBAL 🏆</h3>
         <table class="leaderboard-table">
             <thead>
-                <tr>
-                    <th>Pos</th>
-                    <th>Jugador</th>
-                    <th>Puntos</th>
-                </tr>
+                <tr><th>Pos</th><th>Jugador</th><th>Puntos</th></tr>
             </thead>
             <tbody id="leaderboardBody">
                 <tr><td colspan="3" style="color: #aaa;">Cargando récords...</td></tr>
             </tbody>
         </table>
 
-        <p style="font-size: 12px; color: #bbb; margin-bottom: 10px;">Controles: Flechas (Arriba y Abajo) | Espacio : Disparar</p>
-        <button onclick="cerrarMenu()" style="padding: 12px 30px; background: #2ecc71; color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 16px; width: 100%;">¡A JUGAR!</button>
+        <button onclick="cerrarMenu()" class="btn-interactivo">¡A JUGAR!</button>
+        <button onclick="abrirChangelog()" class="btn-version">🔍 Ver Novedades (v1.2)</button>
+    </div>
+
+    <div id="menuVersión" style="display: none;">
+        <h3 style="color: #f1c40f; margin-top: 0;">📋 Historial de Versiones</h3>
+        <p style="font-weight: bold; color: #2ecc71; margin: 5px 0;">Novedades de la v1.2 PRO:</p>
+        <ul class="changelog-list">
+            <li>🌐 Base de datos Online: Tabla global síncrona en la nube.</li>
+            <li>🆔 Nombres únicos: Filtrado inteligente para evitar spam.</li>
+            <li>⏸️ Sistema de Pausa: Congela la partida con la tecla 'P'.</li>
+            <li>🕹️ Dificultad progresiva: Las cajas aceleran con tu score.</li>
+            <li>⭐ Cajas Doradas Grandes: Textura gigante (+30 pts / +15 vida).</li>
+            <li>🔊 Efectos de Audio: Sonidos retro integrados por código.</li>
+        </ul>
+        <button onclick="cerrarChangelog()" class="btn-interactivo" style="background: #e74c3c;">Volver al Menú</button>
     </div>
 
     <div id="leaderboardUI" style="display:none;">
@@ -68,7 +88,7 @@
         <p id="finalScoreText" style="font-size: 20px; font-weight: bold; margin: 10px 0;"></p> 
         
         <div id="registroNombreContainer" style="display: none; width: 100%;">
-            <p style="color: #f1c40f; margin: 5px 0;">¡Felicidades! Guarda tu mejor récord:</p>
+            <p style="color: #f1c40f; margin: 5px 0;">¡Registra tu mejor puntaje en el Top 5!</p>
             <input type="text" id="playerNameInput" maxlength="15" placeholder="Tu Nombre o Nick">
             <button id="btnGuardarOnline" style="padding: 10px 20px; background: #f1c40f; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; width: 85%;">Guardar Récord Online</button>
         </div>
@@ -82,7 +102,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        // Credenciales vinculadas de tu Firebase
         const firebaseConfig = {
           apiKey: "AIzaSyAngtlCv0JWDz1yNqyAzqgK5xw945PDkmQ",
           authDomain: "shoot-the-box-d8f2b.firebaseapp.com",
@@ -101,110 +120,109 @@
         canvas.width = 800;
         canvas.height = 400;
 
-        // Variables de Juego
         let score = 0;
         let health = 100;
         let gameActive = false;
+        let isPaused = false; // Variable del estado de pausa
         let lastEnemy = 0;
-        let miRecordAnterior = 0;
+        
+        let rachaTexto = "";
+        let rachaTimer = 0;
+        let multiplicadorDificultad = 1;
 
-        // Configuración clásica de deslizamiento (v1.1)
-        const player = {
-            x: 50,
-            y: 170,
-            width: 80,
-            height: 60,
-            speed: 5
-        };
-
+        const player = { x: 50, y: 170, width: 80, height: 60, speed: 5 };
         let enemies = [];
         let bullets = [];
         let particles = [];
-
         const keys = { ArrowUp: false, ArrowDown: false };
 
         const imgFondo = new Image(); imgFondo.src = "fondo.png";
         const imgPlayer = new Image(); imgPlayer.src = "pistola.png";
         const imgEnemy = new Image(); imgEnemy.src = "enemigo.png";
+        const imgEnemyDorado = new Image(); imgEnemyDorado.src = "enemigo_dorado.png"; // Textura del cofre
 
-        // Cargar Tabla Global filtrando duplicados para que no se repitan los nombres
+        // --- AUDIO SINTETIZADO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function reproducirSonido(tipo) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+
+            if (tipo === 'disparo') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            } else if (tipo === 'explosion') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(10, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if (tipo === 'bonus') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+            } else if (tipo === 'gameover') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+            }
+        }
+
         async function cargarLeaderboard() {
             try {
-                // Traemos los récords ordenados de mayor a menor
                 const q = query(collection(db, "leaderboard"), orderBy("puntos", "desc"));
                 const querySnapshot = await getDocs(q);
                 const tbody = document.getElementById("leaderboardBody");
                 tbody.innerHTML = "";
-                
                 let posicion = 1;
-                const nombresRegistrados = new Set();
+                const nombresVistos = new Set();
                 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const nombreLimpio = data.nombre.trim().toLowerCase();
-
-                    // Si el nombre aún no está en el Top 5, lo añadimos
-                    if (!nombresRegistrados.has(nombreLimpio) && posicion <= 5) {
-                        nombresRegistrados.add(nombreLimpio);
-                        
-                        tbody.innerHTML += `
-                            <tr>
-                                <td style="color: #2ecc71; font-weight:bold;">#${posicion}</td>
-                                <td>${data.nombre}</td>
-                                <td style="color: #f1c40f; font-weight:bold;">${data.puntos}</td>
-                            </tr>
-                        `;
+                    const nLimpio = data.nombre.trim().toLowerCase();
+                    if (!nombresVistos.has(nLimpio) && posicion <= 5) {
+                        nombresVistos.add(nLimpio);
+                        tbody.innerHTML += `<tr><td style="color:#2ecc71; font-weight:bold;">#${posicion}</td><td>${data.nombre}</td><td style="color:#f1c40f; font-weight:bold;">${data.puntos}</td></tr>`;
                         posicion++;
                     }
                 });
-
-                if(posicion === 1) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="color: #aaa;">¡Sé el primero en jugar!</td></tr>`;
-                }
-            } catch (error) {
-                console.error("Error al cargar la tabla online: ", error);
-            }
+                if(posicion === 1) tbody.innerHTML = `<tr><td colspan="3" style="color: #aaa;">¡No hay marcas!</td></tr>`;
+            } catch (e) { console.error(e); }
         }
 
-        // Guardar récord online
         async function guardarRecordOnline() {
             const inputNombre = document.getElementById("playerNameInput");
             const nombre = inputNombre.value.trim() || "Anónimo";
-            
             const btn = document.getElementById("btnGuardarOnline");
-            btn.innerText = "Guardando...";
-            btn.disabled = true;
-
+            btn.innerText = "Guardando..."; btn.disabled = true;
             try {
-                await addDoc(collection(db, "leaderboard"), {
-                    nombre: nombre,
-                    puntos: score,
-                    fecha: new Date().toISOString()
-                });
-                alert("¡Récord guardado con éxito!");
+                await addDoc(collection(db, "leaderboard"), { nombre, puntos: score, fecha: new Date().toISOString() });
                 location.reload();
-            } catch (error) {
-                console.error("Error al guardar: ", error);
-                alert("Hubo un error al conectar.");
-                btn.innerText = "Guardar Récord Online";
-                btn.disabled = false;
-            }
+            } catch (e) { btn.innerText = "Error"; btn.disabled = false; }
         }
 
-        window.cerrarMenu = function() {
-            document.getElementById("menuInicio").style.display = "none";
-            gameActive = true;
-        };
+        window.cerrarMenu = function() { document.getElementById("menuInicio").style.display = "none"; gameActive = true; };
+        window.abrirChangelog = function() { document.getElementById("menuInicio").style.display = "none"; document.getElementById("menuVersión").style.display = "flex"; };
+        window.cerrarChangelog = function() { document.getElementById("menuVersión").style.display = "none"; document.getElementById("menuInicio").style.display = "flex"; };
 
-        // --- EVENTOS DE TECLADO CLÁSICOS ---
+        // --- CONTROLES Y SISTEMA DE PAUSA ---
         window.addEventListener('keydown', function(e) {
-            if (!gameActive) return;
+            // Activar/Desactivar pausa con la tecla P (mayúscula o minúscula)
+            if (e.key === "p" || e.key === "P") {
+                if (gameActive) {
+                    isPaused = !isPaused;
+                }
+                return;
+            }
+
+            if (!gameActive || isPaused) return; // Si está pausado, bloquea controles
             if (e.key === "ArrowUp") keys.ArrowUp = true;
             if (e.key === "ArrowDown") keys.ArrowDown = true;
-            if (e.code === "Space") {
-                e.preventDefault();
-                disparar();
-            }
+            if (e.code === "Space") { e.preventDefault(); disparar(); }
         });
 
         window.addEventListener('keyup', function(e) {
@@ -213,46 +231,42 @@
         });
 
         function disparar() {
-            bullets.push({
-                x: player.x + player.width - 10,
-                y: player.y + 22,
-                vx: 12
-            });
+            bullets.push({ x: player.x + player.width - 10, y: player.y + 22, vx: 12 });
+            reproducirSonido('disparo');
         }
 
         function crearExplosion(x, y, color) {
-            for (let i = 0; i < 10; i++) {
-                particles.push({ x, y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, vida: 1, color });
-            }
+            for (let i = 0; i < 12; i++) particles.push({ x, y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, vida: 1, color });
         }
 
         function update(time) {
-            if (!gameActive) return;
+            if (!gameActive || isPaused) return; // Rompe la actualización si hay pausa
+
+            multiplicadorDificultad = 1 + (Math.floor(score / 50) * 0.07);
 
             if (keys.ArrowUp && player.y > 0) player.y -= player.speed;
             if (keys.ArrowDown && player.y < canvas.height - player.height) player.y += player.speed;
 
-            if (time - lastEnemy > 1500) {
+            if (time - lastEnemy > (1500 / multiplicadorDificultad)) {
+                let esDorada = Math.random() < 0.12; 
                 enemies.push({ 
                     x: canvas.width, 
-                    y: Math.random() * (canvas.height - 50),
-                    speed: 3 + Math.random() * 2,
-                    size: 50
+                    y: Math.random() * (canvas.height - 65),
+                    speed: (3 + Math.random() * 2) * multiplicadorDificultad,
+                    size: esDorada ? 65 : 50, // ¡CAJA DORADA MÁS GRANDE (65px)!
+                    tipo: esDorada ? 'dorada' : 'normal'
                 });
                 lastEnemy = time;
             }
 
-            bullets.forEach((b, i) => {
-                b.x += b.vx;
-                if (b.x > canvas.width) bullets.splice(i, 1);
-            });
+            bullets.forEach((b, i) => { b.x += b.vx; if (b.x > canvas.width) bullets.splice(i, 1); });
 
             enemies.forEach((e, i) => {
                 e.x -= e.speed;
 
                 if (e.x + e.size < 0) {
-                    health -= 15; 
-                    crearExplosion(0, e.y + e.size/2, "#e74c3c");
+                    health -= e.tipo === 'dorada' ? 5 : 15; 
+                    crearExplosion(0, e.y + e.size/2, "red");
                     enemies.splice(i, 1);
                     if (health <= 0) morir();
                     return;
@@ -267,63 +281,99 @@
 
                 bullets.forEach((b, j) => {
                     if (b.x < e.x + e.size && b.x + 10 > e.x && b.y < e.y + e.size && b.y + 5 > e.y) {
-                        crearExplosion(e.x + e.size/2, e.y + e.size/2, "#ff4400");
+                        if (e.tipo === 'dorada') {
+                            score += 30; 
+                            health = Math.min(100, health + 15); 
+                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#f1c40f");
+                            reproducirSonido('bonus');
+                            activarAnuncioRacha("✨ ¡COFRE DORADO +30 PTS! ✨");
+                        } else {
+                            score += 10;
+                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#ff4400");
+                            reproducirSonido('explosion');
+                        }
+
+                        if (score === 100) activarAnuncioRacha("🔥 ¡RACHA CENTENARIA! 🔥");
+
                         enemies.splice(i, 1);
                         bullets.splice(j, 1);
-                        score += 10;
                     }
                 });
             });
 
-            particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.vida -= 0.02;
-                if (p.vida <= 0) particles.splice(i, 1);
-            });
+            particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.vida -= 0.02; if (p.vida <= 0) particles.splice(i, 1); });
+            if (rachaTimer > 0) rachaTimer--;
         }
+
+        function activarAnuncioRacha(texto) { rachaTexto = texto; rachaTimer = 100; }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (imgFondo.complete) ctx.drawImage(imgFondo, 0, 0, canvas.width, canvas.height);
-
             if (imgPlayer.complete) ctx.drawImage(imgPlayer, player.x, player.y, player.width, player.height);
 
-            ctx.fillStyle = "yellow";
-            bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 5));
+            ctx.fillStyle = "yellow"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 5));
             
-            enemies.forEach(e => { if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.size, e.size); });
-            
-            particles.forEach(p => { 
-                ctx.globalAlpha = p.vida; ctx.fillStyle = p.color; 
-                ctx.fillRect(p.x, p.y, 4, 4); 
+            enemies.forEach(e => { 
+                if (e.tipo === 'dorada') {
+                    if (imgEnemyDorado.complete) {
+                        ctx.drawImage(imgEnemyDorado, e.x, e.y, e.size, e.size);
+                    }
+                    ctx.shadowBlur = 15; ctx.shadowColor = "#f1c40f";
+                    ctx.fillStyle = "rgba(241, 196, 15, 0.1)"; 
+                    ctx.fillRect(e.x, e.y, e.size, e.size);
+                    ctx.shadowBlur = 0; 
+                } else {
+                    if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.size, e.size);
+                }
             });
+            
+            particles.forEach(p => { ctx.globalAlpha = p.vida; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); });
             ctx.globalAlpha = 1;
 
             ctx.fillStyle = "white"; ctx.font = "bold 20px Arial";
             ctx.fillText("Puntos: " + score, 20, 35);
+            ctx.font = "14px Arial"; ctx.fillStyle = "#aaa";
+            ctx.fillText("Velocidad: x" + multiplicadorDificultad.toFixed(2), 20, 55);
 
-            ctx.fillStyle = "#333";
-            ctx.fillRect(canvas.width - 220, 20, 200, 18);
+            if (rachaTimer > 0) {
+                ctx.fillStyle = "#f1c40f"; ctx.font = "bold 24px Arial"; ctx.textAlign = "center";
+                ctx.fillText(rachaTexto, canvas.width / 2, 60);
+                ctx.textAlign = "left"; 
+            }
+
+            ctx.fillStyle = "#333"; ctx.fillRect(canvas.width - 220, 20, 200, 18);
             ctx.fillStyle = health > 35 ? "#2ecc71" : "#e74c3c";
             ctx.fillRect(canvas.width - 220, 20, (Math.max(0, health) / 100) * 200, 18);
-            ctx.strokeStyle = "white"; ctx.lineWidth = 2;
-            ctx.strokeRect(canvas.width - 220, 20, 200, 18);
-        }
+            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(canvas.width - 220, 20, 200, 18);
 
-        function morir() { 
-            gameActive = false; 
-            document.getElementById("leaderboardUI").style.display = "flex";
-            document.getElementById("finalScoreText").innerText = "PUNTAJE FINAL: " + score;
-            
-            if (score > 0) {
-                document.getElementById("registroNombreContainer").style.display = "block";
-                document.getElementById("btnGuardarOnline").onclick = guardarRecordOnline;
+            // --- INTERFAZ VISUAL DE PAUSA DENTRO DEL CANVAS ---
+            if (isPaused) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = "#2ecc71";
+                ctx.font = "bold 32px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("JUEGO PAUSADO", canvas.width / 2, canvas.height / 2 - 20);
+
+                ctx.fillStyle = "white";
+                ctx.font = "16px Arial";
+                ctx.fillText("Presiona 'P' para Reanudar la partida", canvas.width / 2, canvas.height / 2 + 20);
+                ctx.textAlign = "left"; // Reset
             }
         }
 
+        function morir() { 
+            gameActive = false; reproducirSonido('gameover');
+            document.getElementById("leaderboardUI").style.display = "flex";
+            document.getElementById("finalScoreText").innerText = "PUNTAJE FINAL: " + score;
+            if (score > 0) document.getElementById("registroNombreContainer").style.display = "block";
+            document.getElementById("btnGuardarOnline").onclick = guardarRecordOnline;
+        }
+
         function drawLoop(time) { update(time); draw(); requestAnimationFrame(drawLoop); }
-        
-        cargarLeaderboard();
-        requestAnimationFrame(drawLoop);
+        cargarLeaderboard(); requestAnimationFrame(drawLoop);
     </script>
 </body>
 </html>
