@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shoot The Block | 1.3.3 PWA Edition</title>
+    <title>Shoot The Block | 1.3.3</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2ecc71">
@@ -521,10 +521,10 @@
                         if (score >= 500) desbloquearLogro("rey_bloque");
                         if (health <= 15 && health > 0) desbloquearLogro("al_limite");
 
-                        if (score === 100) activarAnuncioRacha("🔥 ¡RACHA DE BAJAS EXTREMA! 🔥");
-                        if (score === 200) activarAnuncioRacha("🔥 ¡ESTÁS TOTALMENTE IMPARABLE! 🔥");
+                        if (score === 100) activarAnuncioRacha("🔥 ¡EXTREMO! 🔥");
+                        if (score === 200) activarAnuncioRacha("🔥 ¡IMPARBLE! 🔥");
                         if (score === 500) activarAnuncioRacha("👑 ¡EL REY SUPREMO DEL BLOQUE! 👑");
-                        if (score === 1000) activarAnuncioRacha("🚀 ¡NIVEL GALÁCTICO ALCANZADO! 🚀");
+                        if (score === 1000) activarAnuncioRacha("🚀 ¡NIVEL GALÁCTICO! 🚀");
 
                         enemies.splice(i, 1); bullets.splice(j, 1);
                     }
