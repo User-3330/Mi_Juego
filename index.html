@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shoot The Block | 1.3.3</title>
+    <title>Shoot The Block | 1.3.4 PWA Edition</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2ecc71">
@@ -25,7 +25,7 @@
             image-rendering: pixelated; 
         }
         
-        #menuInicio, #leaderboardUI, #menuVersión, #menuLogros, #menuRegistroUsuario {
+        #menuInicio, #menuAventura, #leaderboardUI, #aventuraResultadoUI, #menuPausa, #menuVersión, #menuLogros, #menuRegistroUsuario {
             position: absolute; width: 340px; padding: 20px;
             background: rgba(10, 30, 10, 0.95); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; 
@@ -59,6 +59,23 @@
             cursor: pointer; border: 1px solid #7f8c8d; margin-top: 10px; width: 45%;
         }
         .container-botones { display: flex; justify-content: space-between; width: 100%; }
+
+        .botones-modo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .boton-modo { min-height: 72px; padding: 10px; border: 2px solid #2ecc71; border-radius: 10px; color: white; background: #176b4a; font-weight: bold; cursor: pointer; }
+        .boton-modo.aventura { border-color: #f1c40f; background: #8a5a12; }
+        .boton-modo small { display: block; color: #ddd; font-size: 11px; font-weight: normal; margin-top: 5px; }
+        #mapaNiveles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; width: 100%; margin: 10px 0; }
+        .nivel-mapa { min-height: 76px; padding: 8px 4px; border: 2px solid #7f8c8d; border-radius: 8px; color: white; background: rgba(255,255,255,0.08); cursor: pointer; font-weight: bold; }
+        .nivel-mapa.desbloqueado { border-color: #2ecc71; background: rgba(46, 204, 113, 0.2); }
+        .nivel-mapa.completado { border-color: #f1c40f; background: rgba(241, 196, 15, 0.2); }
+        .nivel-mapa:disabled { cursor: not-allowed; opacity: 0.45; }
+        .nivel-mapa small { display: block; font-size: 10px; color: #ddd; margin-top: 5px; }
+        .selector-skin { width: 100%; margin: 8px 0 2px; text-align: left; }
+        .selector-skin label { display: block; color: #aaa; font-size: 11px; margin-bottom: 4px; }
+        .selector-skin select { width: 100%; padding: 8px; border: 2px solid #2ecc71; border-radius: 5px; background: #111; color: white; font-weight: bold; }
+        #vistaSkin { display: block; width: 48px; height: 36px; object-fit: contain; margin: 3px auto 0; }
+        .texto-flotante { position: absolute; pointer-events: none; color: #f1c40f; font-size: 16px; font-weight: bold; text-shadow: 2px 2px #111; z-index: 500; animation: subirTexto 0.9s ease-out forwards; }
+        @keyframes subirTexto { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-35px); } }
         
         .changelog-list { text-align: left; font-size: 13px; color: #ddd; padding-left: 20px; line-height: 1.6; }
         
@@ -141,6 +158,12 @@
         
         <button id="btnInstalarApp">📲 INSTALAR EN PANTALLA DE INICIO</button>
 
+        <div class="selector-skin">
+            <label for="selectorSkin">SKIN DE TU JUGADOR</label>
+            <select id="selectorSkin"></select>
+            <img id="vistaSkin" src="pistola.png" alt="Skin seleccionada">
+        </div>
+
         <h3 style="margin: 5px 0; color: #2ecc71; font-size: 16px;">🏆 TOP 5 GLOBAL 🏆</h3>
         <table class="leaderboard-table">
             <thead>
@@ -151,7 +174,11 @@
             </tbody>
         </table>
 
-        <button onclick="cerrarMenu()" class="btn-interactivo">¡A JUGAR!</button>
+        <p style="color: #ddd; font-size: 12px; margin: 8px 0 2px;">ELIGE TU MODO DE JUEGO</p>
+        <div class="botones-modo">
+            <button onclick="iniciarModoInfinito()" class="boton-modo">♾️ INFINITO<small>La partida clásica</small></button>
+            <button onclick="abrirMapaAventura()" class="boton-modo aventura">🗺️ AVENTURA<small>Completa misiones</small></button>
+        </div>
         
         <div class="container-botones">
             <button onclick="abrirChangelog()" class="btn-secundario">🔍 Novedades</button>
@@ -159,14 +186,22 @@
         </div>
     </div>
 
+    <div id="menuAventura" style="display: none;">
+        <h3 style="color: #f1c40f; margin: 0 0 4px;">🗺️ MAPA DE AVENTURA</h3>
+        <p id="progresoAventura" style="color: #aaa; font-size: 12px; margin: 0 0 8px;"></p>
+        <div id="mapaNiveles"></div>
+        <button onclick="cerrarMapaAventura()" class="btn-interactivo" style="background: #e74c3c;">Volver a modos</button>
+    </div>
+
     <div id="menuVersión" style="display: none;">
         <h3 style="color: #f1c40f; margin-top: 0;">📋 Historial de Versiones</h3>
-        <p style="font-weight: bold; color: #2ecc71; margin: 5px 0;">Novedades de la v1.3.3:</p>
+        <p style="font-weight: bold; color: #2ecc71; margin: 5px 0;">Novedades de la v1.3.4:</p>
         <ul class="changelog-list">
-            <li>📱 **Modo PWA:** Ya puedes instalar el juego como app nativa en tu celular.</li>
-            <li>🚫 **Anti-Zoom:** Eliminado el estiramiento de pantalla al presionar rápido los botones.</li>
-            <li>⏸️ **Pausa Táctil:** Botón físico incorporado para frenar la partida en celulares.</li>
-            <li>💬 **Dificultad Fusión:** La velocidad sube cada 100 pts y las cajas doradas frenan el juego.</li>
+            <li>⌨️ <strong>Controles ampliados:</strong> Ahora puedes moverte con las teclas W y S.</li>
+            <li>📊 <strong>Leaderboard reforzado:</strong> Se filtran registros inválidos y se muestran las mejores marcas por jugador.</li>
+            <li>📡 <strong>Modo offline:</strong> La aplicación puede cargar sus recursos principales sin conexión.</li>
+            <li>💥 <strong>Caja explosiva:</strong> Destruye cajas cercanas al impactar.</li>
+            <li>🎨 <strong>Skins:</strong> Elige una apariencia para tu jugador.</li>
         </ul>
         <button onclick="cerrarChangelog()" class="btn-interactivo" style="background: #e74c3c;">Volver al Menú</button>
     </div>
@@ -185,6 +220,20 @@
         <button onclick="location.reload()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 85%; margin-top: 15px;">Volver al Inicio</button>
     </div>
 
+    <div id="aventuraResultadoUI" style="display:none;">
+        <h2 style="color: #f1c40f; margin-top: 0;">¡MISIÓN COMPLETADA!</h2>
+        <p id="aventuraResultadoTexto" style="font-size: 16px; font-weight: bold; margin: 10px 0;"></p>
+        <button id="btnSiguienteNivel" onclick="siguienteNivelAventura()" class="btn-interactivo">Siguiente nivel</button>
+        <button onclick="volverMapaDesdeResultado()" class="btn-interactivo" style="background: #34495e;">Volver al mapa</button>
+    </div>
+
+    <div id="menuPausa" style="display:none;">
+        <h2 style="color: #f1c40f; margin: 0 0 8px;">⏸️ PARTIDA EN PAUSA</h2>
+        <p id="resumenPausa" style="color: #ddd; font-size: 13px; line-height: 1.5; margin: 4px 0;"></p>
+        <button onclick="reanudarPartida()" class="btn-interactivo">▶️ Reanudar</button>
+        <button onclick="salirDeLaPartida()" class="btn-interactivo" style="background: #e74c3c;">Salir al menú</button>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
     <div id="notificacionLogro">
@@ -195,7 +244,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAngtlCv0JWDz1yNqyAzqgK5xw945PDkmQ",
@@ -229,16 +278,64 @@
         let multiplicadorDificultad = 1;
         let disparosFalladosSeguidos = 0; 
 
-        const player = { x: 50, y: 170, width: 80, height: 60, speed: 5 };
+        const player = { x: 50, y: 170, width: 77, height: 70, speed: 5 };
         let enemies = [];
         let bullets = [];
         let particles = [];
-        const keys = { ArrowUp: false, ArrowDown: false };
+        const keys = { ArrowUp: false, ArrowDown: false, W: false, S: false };
+        const AVENTURA_NIVELES = [
+            { id: 1, nombre: "Costa de Cristal", mision: "Alcanza 100 puntos.", tipo: "puntos", objetivo: 100 },
+            { id: 2, nombre: "Torres Perdidas", mision: "Alcanza 200 puntos con 50 o más de vida.", tipo: "resistencia", objetivo: 200, vidaMinima: 50 },
+            { id: 3, nombre: "Santuario Dorado", mision: "Destruye 2 cofres dorados.", tipo: "doradas", objetivo: 2 }
+        ];
+        let modoJuego = "infinito";
+        let nivelAventuraActual = null;
+        let doradasDestruidas = 0;
+        let misionAventuraCompletada = false;
+        let disparosRealizados = 0;
+        let cajasDestruidas = 0;
+        let rachaAciertos = 0;
+        let cajasAzulesRecogidas = 0;
+        let tiempoInicioPartida = 0;
+        let tiempoBajoVida = 0;
+        let ultimaActualizacion = 0;
+        let tiemposDeBajas = [];
+        let textosFlotantes = [];
+        const SKINS = [
+            { id: "predeterminada", nombre: "Predeterminada", archivo: "pistola.png" },
+            { id: "azul", nombre: "Azul", archivo: "skin_pistola_azul.png" },
+            { id: "verde", nombre: "Verde", archivo: "skin_pistola_verde.png" }
+        ];
 
         const imgFondo = new Image(); imgFondo.src = "fondo.png";
-        const imgPlayer = new Image(); imgPlayer.src = "pistola.png";
+        const imgPlayer = new Image();
+        let skinSeleccionada = localStorage.getItem("skin_seleccionada") || "predeterminada";
+        function skinEstaDesbloqueada(id) {
+            return id === "predeterminada" || localStorage.getItem(`skin_desbloqueada_${id}`) === "true";
+        }
+        function cargarSkin(id) {
+            const skin = SKINS.find(item => item.id === id && skinEstaDesbloqueada(id)) || SKINS[0];
+            skinSeleccionada = skin.id;
+            localStorage.setItem("skin_seleccionada", skin.id);
+            imgPlayer.onerror = () => {
+                imgPlayer.onerror = null;
+                imgPlayer.src = "pistola.png";
+            };
+            imgPlayer.src = skin.archivo;
+            const vista = document.getElementById("vistaSkin");
+            if (vista) {
+                vista.onerror = () => {
+                    vista.onerror = null;
+                    vista.src = "pistola.png";
+                };
+                vista.src = skin.archivo;
+            }
+        }
         const imgEnemy = new Image(); imgEnemy.src = "enemigo.png";
         const imgEnemyDorado = new Image(); imgEnemyDorado.src = "enemigo_dorado.png";
+        let invencibleTimer = 0; // Temporizador para el escudo
+        const imgEnemyAzul = new Image(); imgEnemyAzul.src = "enemigo_azul.png"; // Tu nueva caja azul
+        const imgEnemyExplosiva = new Image(); imgEnemyExplosiva.src = "enemigo_explosivo.png";
 
         // 🧠 --- DETECTOR PARA LA INSTALACIÓN (PWA) ---
         let eventoInstalacion;
@@ -283,6 +380,20 @@
             }
         }
 
+        function configurarSelectorSkin() {
+            const selector = document.getElementById("selectorSkin");
+            selector.innerHTML = SKINS.map(skin => `<option value="${skin.id}" ${skinEstaDesbloqueada(skin.id) ? "" : "disabled"}>${skinEstaDesbloqueada(skin.id) ? skin.nombre : "🔒 " + skin.nombre}</option>`).join("");
+            selector.value = SKINS.some(skin => skin.id === skinSeleccionada && skinEstaDesbloqueada(skin.id)) ? skinSeleccionada : "predeterminada";
+            selector.addEventListener("change", () => cargarSkin(selector.value));
+            cargarSkin(selector.value);
+        }
+
+        function desbloquearSkin(id) {
+            if (!SKINS.some(skin => skin.id === id) || skinEstaDesbloqueada(id)) return;
+            localStorage.setItem(`skin_desbloqueada_${id}`, "true");
+            configurarSelectorSkin();
+        }
+
         window.registrarUsuarioFijo = function() {
             const input = document.getElementById("userInputFijo");
             const nombre = input.value.trim();
@@ -302,7 +413,14 @@
             superviviente: { titulo: "⛺ Superviviente Urbano", desc: "Alcanza los 300 puntos en una partida.", disabled: false },
             al_limite: { titulo: "💔 Al Filo de la Muerte", desc: "Destruye una caja teniendo 15 o menos de vida.", disabled: false },
             rey_bloque: { titulo: "👑 ¡¿Es un Avión?!", desc: "Alcanza los 500 puntos en una partida.", disabled: false },
-            pensador: { titulo: "🧠 El Pensador", desc: "Logro Secreto: Pausa el juego 5 veces en una partida.", disabled: false }
+            pensador: { titulo: "🧠 El Pensador", desc: "Pausa el juego 5 veces en una partida.", disabled: false },
+            sniper_bloques: { titulo: "🎯 Tiro al Blanco", desc: "Destruye 15 cajas seguidas sin fallar una bala.", disabled: false },
+            gatillo_rapido: { titulo: "⚡ Dedos Rápidos", desc: "Destruye 3 cajas en menos de 2 segundos.", disabled: false },
+            cerca_abismo: { titulo: "💔 Cerca de la Muerte", desc: "Sobrevive 20 segundos teniendo menos de 20 de vida.", disabled: false },
+            tanque_imparable: { titulo: "🛡️ Imparable", desc: "Llega a 200 puntos con al menos 80 de vida.", disabled: false },
+            fiebre_oro: { titulo: "✨ Fiebre del Oro", desc: "Destruye 5 cofres dorados en una partida.", disabled: false },
+            maestro_tiempo: { titulo: "🔵 Maestro del Tiempo", desc: "Recoge 3 cajas azules en una partida.", disabled: false },
+            pacifista_terco: { titulo: "🤫 Pacifista", desc: "Sobrevive 15 segundos sin disparar.", disabled: false }
         };
 
         function cargarLogrosGuardados() {
@@ -385,31 +503,147 @@
                 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const nLimpio = data.nombre.trim().toLowerCase();
-                    if (!nombresVistos.has(nLimpio) && posicion <= 5) {
-                        nombresVistos.add(nLimpio);
-                        tbody.innerHTML += `<tr><td style="color:#2ecc71; font-weight:bold;">#${posicion}</td><td>${data.nombre}</td><td style="color:#f1c40f; font-weight:bold;">${data.puntos}</td></tr>`;
-                        posicion++;
-                    }
+                    const nombre = typeof data.nombre === "string" ? data.nombre.trim() : "";
+                    const puntos = Number(data.puntos);
+                    const nLimpio = nombre.toLowerCase();
+                    if (!nombre || !Number.isFinite(puntos) || puntos < 0 || nombresVistos.has(nLimpio) || posicion > 5) return;
+
+                    nombresVistos.add(nLimpio);
+                    const nombreSeguro = nombre.replace(/[&<>\'"]/g, caracter => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[caracter]);
+                    tbody.innerHTML += `<tr><td style="color:#2ecc71; font-weight:bold;">#${posicion}</td><td>${nombreSeguro}</td><td style="color:#f1c40f; font-weight:bold;">${puntos}</td></tr>`;
+                    posicion++;
                 });
                 if(posicion === 1) tbody.innerHTML = `<tr><td colspan="3" style="color: #aaa;">¡No hay marcas!</td></tr>`;
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("No se pudo cargar el leaderboard:", e);
+                document.getElementById("leaderboardBody").innerHTML = `<tr><td colspan="3" style="color: #f1c40f;">Leaderboard no disponible</td></tr>`;
+            }
         }
 
         async function guardarRecordOnlineAutomatico() {
             const txt = document.getElementById("savingScoreText");
             try {
-                await addDoc(collection(db, "leaderboard"), { nombre: nombreUsuarioFijo, puntos: score, fecha: new Date().toISOString() });
-                txt.innerText = "¡Récord sincronizado exitosamente en la nube! ✓";
+                const nombre = typeof nombreUsuarioFijo === "string" ? nombreUsuarioFijo.trim().slice(0, 12) : "";
+                const puntos = Number(score);
+                if (nombre.length < 2 || !Number.isFinite(puntos) || puntos <= 0) {
+                    txt.innerText = "Récord no válido para guardar.";
+                    txt.style.color = "#e74c3c";
+                    return;
+                }
+                const idJugador = encodeURIComponent(nombre.toLowerCase());
+                const referenciaJugador = doc(db, "leaderboard", idJugador);
+                const registroActual = await getDoc(referenciaJugador);
+                const mejorPuntaje = registroActual.exists() ? Number(registroActual.data().puntos) : 0;
+                if (Number.isFinite(mejorPuntaje) && puntos <= mejorPuntaje) {
+                    txt.innerText = `Tu mejor récord sigue siendo ${mejorPuntaje} puntos.`;
+                    txt.style.color = "#f1c40f";
+                    return;
+                }
+                await setDoc(referenciaJugador, { nombre, puntos, fecha: new Date().toISOString() });
+                txt.innerText = "¡Mejor récord sincronizado en la nube! ✓";
                 txt.style.color = "#2ecc71";
             } catch (e) { txt.innerText = "Error al conectar con la nube."; txt.style.color = "#e74c3c"; }
         }
 
-        window.cerrarMenu = function() { 
-            document.getElementById("menuInicio").style.display = "none"; 
-            gameActive = true; 
+        function iniciarPartida(modo, nivel = null) {
+            modoJuego = modo;
+            nivelAventuraActual = nivel;
+            score = 0;
+            health = 100;
+            isPaused = false;
+            lastEnemy = 0;
+            vecesPausado = 0;
+            frenoDorado = 0;
+            invencibleTimer = 0;
+            doradasDestruidas = 0;
+            misionAventuraCompletada = false;
+            disparosRealizados = 0;
+            cajasDestruidas = 0;
+            rachaAciertos = 0;
+            cajasAzulesRecogidas = 0;
+            tiempoInicioPartida = performance.now();
+            tiempoBajoVida = 0;
+            ultimaActualizacion = tiempoInicioPartida;
+            tiemposDeBajas = [];
+            textosFlotantes = [];
+            enemies = [];
+            bullets = [];
+            particles = [];
+            player.x = 50;
+            player.y = 170;
+            document.getElementById("menuInicio").style.display = "none";
+            document.getElementById("menuAventura").style.display = "none";
+            document.getElementById("aventuraResultadoUI").style.display = "none";
+            document.getElementById("leaderboardUI").style.display = "none";
+            gameActive = true;
             document.getElementById("controlesTouch").style.display = (window.matchMedia("(pointer: coarse)").matches) ? "block" : "none";
+        }
+
+        function obtenerNivelMaximoDesbloqueado() {
+            const guardado = Number.parseInt(localStorage.getItem("aventura_nivel_desbloqueado"), 10);
+            return Number.isInteger(guardado) ? Math.min(AVENTURA_NIVELES.length, Math.max(1, guardado)) : 1;
+        }
+
+        function actualizarMapaAventura() {
+            const maximo = obtenerNivelMaximoDesbloqueado();
+            const contenedor = document.getElementById("mapaNiveles");
+            const completados = AVENTURA_NIVELES.filter(nivel => localStorage.getItem(`aventura_nivel_${nivel.id}`) === "true").length;
+            document.getElementById("progresoAventura").innerText = `Niveles completados: ${completados} / ${AVENTURA_NIVELES.length}`;
+            contenedor.innerHTML = AVENTURA_NIVELES.map(nivel => {
+                const desbloqueado = nivel.id <= maximo;
+                const completado = localStorage.getItem(`aventura_nivel_${nivel.id}`) === "true";
+                const clase = `${desbloqueado ? "desbloqueado" : ""} ${completado ? "completado" : ""}`;
+                return `<button class="nivel-mapa ${clase}" ${desbloqueado ? `onclick="iniciarNivelAventura(${nivel.id})"` : "disabled"}>${completado ? "✅" : (desbloqueado ? "▶️" : "🔒")} NIVEL ${nivel.id}<small>${nivel.nombre}<br>${nivel.mision}</small></button>`;
+            }).join("");
+        }
+
+        window.iniciarModoInfinito = function() { iniciarPartida("infinito"); };
+        window.abrirMapaAventura = function() {
+            actualizarMapaAventura();
+            document.getElementById("menuInicio").style.display = "none";
+            document.getElementById("menuAventura").style.display = "flex";
         };
+        window.cerrarMapaAventura = function() {
+            document.getElementById("menuAventura").style.display = "none";
+            document.getElementById("menuInicio").style.display = "flex";
+        };
+        window.iniciarNivelAventura = function(id) {
+            const nivel = AVENTURA_NIVELES.find(item => item.id === id);
+            if (nivel && id <= obtenerNivelMaximoDesbloqueado()) iniciarPartida("aventura", nivel);
+        };
+        window.siguienteNivelAventura = function() {
+            const siguiente = AVENTURA_NIVELES.find(nivel => nivel.id === nivelAventuraActual.id + 1);
+            if (siguiente) iniciarPartida("aventura", siguiente);
+            else volverMapaDesdeResultado();
+        };
+        window.volverMapaDesdeResultado = function() {
+            document.getElementById("aventuraResultadoUI").style.display = "none";
+            actualizarMapaAventura();
+            document.getElementById("menuAventura").style.display = "flex";
+        };
+
+        function comprobarMisionAventura() {
+            if (modoJuego !== "aventura" || !nivelAventuraActual || misionAventuraCompletada) return;
+            const nivel = nivelAventuraActual;
+            const cumplida = nivel.tipo === "puntos" && score >= nivel.objetivo
+                || nivel.tipo === "resistencia" && score >= nivel.objetivo && health >= nivel.vidaMinima
+                || nivel.tipo === "doradas" && doradasDestruidas >= nivel.objetivo;
+            if (!cumplida) return;
+
+            misionAventuraCompletada = true;
+            gameActive = false;
+            document.getElementById("controlesTouch").style.display = "none";
+            localStorage.setItem(`aventura_nivel_${nivel.id}`, "true");
+            if (nivel.id >= 1) desbloquearSkin("azul");
+            if (nivel.id >= 2) desbloquearSkin("verde");
+            const desbloqueado = Math.min(AVENTURA_NIVELES.length, nivel.id + 1);
+            localStorage.setItem("aventura_nivel_desbloqueado", String(Math.max(desbloqueado, obtenerNivelMaximoDesbloqueado())));
+            document.getElementById("aventuraResultadoTexto").innerText = `${nivel.nombre}: ${nivel.mision} Puntuación: ${score}`;
+            document.getElementById("aventuraResultadoUI").style.display = "flex";
+            document.getElementById("btnSiguienteNivel").style.display = nivel.id < AVENTURA_NIVELES.length ? "block" : "none";
+        }
+
+        window.cerrarMenu = function() { iniciarModoInfinito(); };
         window.abrirChangelog = function() { document.getElementById("menuInicio").style.display = "none"; document.getElementById("menuVersión").style.display = "flex"; document.getElementById("controlesTouch").style.display = "none"; };
         window.cerrarChangelog = function() { document.getElementById("menuVersión").style.display = "none"; document.getElementById("menuInicio").style.display = "flex"; };
         window.abrirLogros = function() { actualizarMenuLogrosUI(); document.getElementById("menuInicio").style.display = "none"; document.getElementById("menuLogros").style.display = "flex"; document.getElementById("controlesTouch").style.display = "none"; };
@@ -418,14 +652,19 @@
         window.addEventListener('keydown', function(e) {
             if (e.key === "p" || e.key === "P") { alternarPausa(); return; }
             if (!gameActive || isPaused) return;
-            if (e.key === "ArrowUp") keys.ArrowUp = true;
-            if (e.key === "ArrowDown") keys.ArrowDown = true;
+            if (e.key === "ArrowUp" || e.code === "KeyW") keys.ArrowUp = true;
+            if (e.key === "ArrowDown" || e.code === "KeyS") keys.ArrowDown = true;
             if (e.code === "Space") { e.preventDefault(); disparar(); }
         });
 
         window.addEventListener('keyup', function(e) {
-            if (e.key === "ArrowUp") keys.ArrowUp = false;
-            if (e.key === "ArrowDown") keys.ArrowDown = false;
+            if (e.key === "ArrowUp" || e.code === "KeyW") keys.ArrowUp = false;
+            if (e.key === "ArrowDown" || e.code === "KeyS") keys.ArrowDown = false;
+        });
+
+        window.addEventListener('blur', () => {
+            keys.ArrowUp = false;
+            keys.ArrowDown = false;
         });
 
         const btnArriba = document.getElementById("btnArriba");
@@ -445,12 +684,38 @@
         function alternarPausa() {
             if (gameActive) { 
                 isPaused = !isPaused; 
-                if (isPaused) { vecesPausado++; if (vecesPausado >= 5) { desbloquearLogro("pensador"); } } 
+                if (isPaused) {
+                    vecesPausado++;
+                    if (vecesPausado >= 5) desbloquearLogro("pensador");
+                    document.getElementById("resumenPausa").innerText = `Puntos: ${score} | Vida: ${Math.max(0, health)}${modoJuego === "aventura" ? ` | Nivel: ${nivelAventuraActual.id}` : ""}`;
+                    document.getElementById("menuPausa").style.display = "flex";
+                } else {
+                    document.getElementById("menuPausa").style.display = "none";
+                }
             }
         }
 
+        window.reanudarPartida = function() {
+            if (!gameActive) return;
+            isPaused = false;
+            document.getElementById("menuPausa").style.display = "none";
+        };
+
+        window.salirDeLaPartida = function() {
+            gameActive = false;
+            isPaused = false;
+            enemies = [];
+            bullets = [];
+            particles = [];
+            textosFlotantes = [];
+            document.getElementById("menuPausa").style.display = "none";
+            document.getElementById("controlesTouch").style.display = "none";
+            document.getElementById("menuInicio").style.display = "flex";
+        };
+
         function disparar() {
             bullets.push({ x: player.x + player.width - 10, y: player.y + 22, vx: 12, tocoEnemigo: false });
+            disparosRealizados++;
             reproducirSonido('disparo');
         }
 
@@ -458,8 +723,31 @@
             for (let i = 0; i < 12; i++) particles.push({ x, y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, vida: 1, color });
         }
 
+        function mostrarTextoFlotante(x, y, texto, color = "#f1c40f") {
+            const elemento = document.createElement("span");
+            elemento.className = "texto-flotante";
+            elemento.innerText = texto;
+            elemento.style.color = color;
+            elemento.style.left = `${(x / canvas.width) * canvas.clientWidth + canvas.offsetLeft}px`;
+            elemento.style.top = `${(y / canvas.height) * canvas.clientHeight + canvas.offsetTop}px`;
+            document.body.appendChild(elemento);
+            textosFlotantes.push(elemento);
+            setTimeout(() => {
+                elemento.remove();
+                textosFlotantes = textosFlotantes.filter(item => item !== elemento);
+            }, 900);
+        }
+
         function update(time) {
             if (!gameActive || isPaused) return;
+
+            const deltaSegundos = Math.min(0.1, Math.max(0, (time - ultimaActualizacion) / 1000));
+            ultimaActualizacion = time;
+            if (health < 20) tiempoBajoVida += deltaSegundos;
+
+            // Restar el escudo de invencibilidad correctamente una vez por frame
+            if (invencibleTimer > 0) invencibleTimer--;
+            evaluarLogrosDurantePartida(time);
 
             let velocidadBase = 1 + (Math.floor(score / 100) * 0.07);
             multiplicadorDificultad = Math.max(1, velocidadBase - frenoDorado);
@@ -467,26 +755,39 @@
             if (keys.ArrowUp && player.y > 0) player.y -= player.speed;
             if (keys.ArrowDown && player.y < canvas.height - player.height) player.y += player.speed;
 
+            // Generación de enemigos
             if (time - lastEnemy > (1500 / multiplicadorDificultad)) {
-                let esDorada = Math.random() < 0.12; 
+                let r = Math.random();
+                let esDorada = r < 0.12;
+                let esAzul = !esDorada && r < 0.17;
+                let esExplosiva = !esDorada && !esAzul && r < 0.35;
+
                 enemies.push({ 
                     x: canvas.width, 
                     y: Math.random() * (canvas.height - 65),
                     speed: (3 + Math.random() * 2) * multiplicadorDificultad,
-                    size: esDorada ? 65 : 50, 
-                    tipo: esDorada ? 'dorada' : 'normal'
+                    size: esDorada ? 65 : (esAzul ? 45 : (esExplosiva ? 70 : 50)),
+                    tipo: esDorada ? 'dorada' : (esAzul ? 'azul' : (esExplosiva ? 'explosiva' : 'normal'))
                 });
                 lastEnemy = time;
             }
 
             bullets.forEach((b, i) => { 
                 b.x += b.vx; 
-                if (b.x > canvas.width) { if (!b.tocoEnemigo) disparosFalladosSeguidos++; bullets.splice(i, 1); }
+                if (b.x > canvas.width) {
+                    if (!b.tocoEnemigo) {
+                        disparosFalladosSeguidos++;
+                        rachaAciertos = 0;
+                    }
+                    bullets.splice(i, 1);
+                }
             });
 
             enemies.forEach((e, i) => {
+                if (e._destruidaPorExplosion) return;
                 e.x -= e.speed;
 
+                // Si la caja cruza el borde izquierdo (Daño al jugador)
                 if (e.x + e.size < 0) {
                     health -= e.tipo === 'dorada' ? 5 : 15; 
                     crearExplosion(0, e.y + e.size/2, "red");
@@ -495,38 +796,97 @@
                     return;
                 }
 
+                // UNIFICADO: Choque frontal de la caja contra el jugador
                 if (e.x < player.x + player.width && e.x + e.size > player.x && e.y < player.y + player.height && e.y + e.size > player.y) {
-                    health -= 20; crearExplosion(e.x, e.y, "red"); enemies.splice(i, 1);
-                    if (health <= 0) morir();
+                    if (invencibleTimer > 0) {
+                        // 🔥 ¡Modo Dios! Destruyes la caja con el cuerpo y ganas puntos
+                        score += e.tipo === 'dorada' ? 30 : 10;
+                        crearExplosion(e.x + e.size/2, e.y + e.size/2, "#3498db");
+                        reproducirSonido('explosion');
+                        enemies.splice(i, 1);
+                    } else {
+                        // Daño normal si no tienes escudo
+                        health -= e.tipo === 'dorada' ? 5 : 20; // Si es normal quita 20
+                        crearExplosion(e.x + e.size/2, e.y + e.size/2, "red");
+                        enemies.splice(i, 1);
+                        if (health <= 0) morir();
+                    }
+                    return;
                 }
 
+                // Choque de las balas con los enemigos
                 bullets.forEach((b, j) => {
                     if (b.x < e.x + e.size && b.x + 10 > e.x && b.y < e.y + e.size && b.y + 5 > e.y) {
                         b.tocoEnemigo = true; 
-                        
-                        if (e.tipo === 'dorada') {
-                            score += 30; health = Math.min(100, health + 15); 
-                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#f1c40f");
-                            frenoDorado += 0.05; 
-                            desbloquearLogro("tesoro_encontrado");
-                        } else {
-                            score += 10; crearExplosion(e.x + e.size/2, e.y + e.size/2, "#ff4400");
-                            reproducirSonido('explosion');
-                        }
-
+                        disparosFalladosSeguidos = 0;
+                        rachaAciertos++;
+                        cajasDestruidas++;
                         if (score >= 10) desbloquearLogro("primera_baja");
                         if (score >= 100 && health >= 50) desbloquearLogro("intocable");
-                        if (disparosFalladosSeguidos === 0 && score >= 50) desbloquearLogro("punteria_pura");
+                        if (rachaAciertos >= 5) desbloquearLogro("punteria_pura");
                         if (score >= 300) desbloquearLogro("superviviente");
                         if (score >= 500) desbloquearLogro("rey_bloque");
                         if (health <= 15 && health > 0) desbloquearLogro("al_limite");
+                        tiemposDeBajas.push(time);
+                        tiemposDeBajas = tiemposDeBajas.filter(marca => time - marca <= 2000);
+                        if (rachaAciertos >= 15) desbloquearLogro("sniper_bloques");
+                        if (tiemposDeBajas.length >= 3) desbloquearLogro("gatillo_rapido");
+                        
+                        if (e.tipo === 'explosiva') {
+                            const centroX = e.x + e.size / 2;
+                            const centroY = e.y + e.size / 2;
+                            const radioExplosion = 100;
+                            score += 10;
+                            mostrarTextoFlotante(centroX, centroY, "+10 ¡EXPLOSIÓN!", "#e67e22");
+                            crearExplosion(centroX, centroY, "#e67e22");
+                            reproducirSonido('explosion');
+                            enemies.forEach(cercana => {
+                                if (cercana !== e && Math.hypot(cercana.x + cercana.size / 2 - centroX, cercana.y + cercana.size / 2 - centroY) <= radioExplosion) {
+                                    score += cercana.tipo === 'dorada' ? 30 : 10;
+                                    mostrarTextoFlotante(cercana.x + cercana.size / 2, cercana.y + cercana.size / 2, cercana.tipo === 'dorada' ? "+30" : "+10", "#f39c12");
+                                    cajasDestruidas++;
+                                    crearExplosion(cercana.x + cercana.size / 2, cercana.y + cercana.size / 2, "#f39c12");
+                                    cercana._destruidaPorExplosion = true;
+                                }
+                            });
+                            e._destruidaPorExplosion = true;
+                        } else if (e.tipo === 'dorada') {
+                            score += 30; health = Math.min(100, health + 15); 
+                            mostrarTextoFlotante(e.x + e.size / 2, e.y + e.size / 2, "+30", "#f1c40f");
+                            doradasDestruidas++;
+                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#f1c40f");
+                            frenoDorado += 0.05; 
+                            desbloquearLogro("tesoro_encontrado");
+                        } else if (e.tipo === 'azul') {
+                            // Activar escudo si le disparas a la caja azul
+                            invencibleTimer = 1200; 
+                            cajasAzulesRecogidas++;
+                            mostrarTextoFlotante(e.x + e.size / 2, e.y + e.size / 2, "ESCUDO", "#3498db");
+                            if (cajasAzulesRecogidas >= 3) desbloquearLogro("maestro_tiempo");
+                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#3498db");
+                            reproducirSonido('bonus');
+                        } else {
+                            score += 10;
+                            mostrarTextoFlotante(e.x + e.size / 2, e.y + e.size / 2, "+10", "#f1c40f");
+                            crearExplosion(e.x + e.size/2, e.y + e.size/2, "#ff4400");
+                            reproducirSonido('explosion');
+                        }
 
-                        if (score === 100) activarAnuncioRacha("🔥 ¡EXTREMO! 🔥");
-                        if (score === 200) activarAnuncioRacha("🔥 ¡IMPARBLE! 🔥");
+                        // Lógica de Rachas arreglada (Condiciones de rangos eliminan el bug de saltos)
+                        if (score === 100) activarAnuncioRacha("🔥 ¡RACHA DE BAJAS EXTREMA! 🔥");
+                        if (score === 200) activarAnuncioRacha("🔥 ¡ESTÁS TOTALMENTE IMPARABLE! 🔥");
                         if (score === 500) activarAnuncioRacha("👑 ¡EL REY SUPREMO DEL BLOQUE! 👑");
-                        if (score === 1000) activarAnuncioRacha("🚀 ¡NIVEL GALÁCTICO! 🚀");
+                        if (score === 1000) activarAnuncioRacha("🚀 ¡NIVEL GALÁCTICO ALCANZADO! 🚀");
 
-                        enemies.splice(i, 1); bullets.splice(j, 1);
+                        comprobarMisionAventura();
+                        evaluarLogrosDurantePartida(time);
+
+                        if (e.tipo === 'explosiva') {
+                            enemies = enemies.filter(cercana => !cercana._destruidaPorExplosion);
+                        } else {
+                            enemies.splice(i, 1);
+                        }
+                        bullets.splice(j, 1);
                     }
                 });
             });
@@ -537,40 +897,81 @@
 
         function activarAnuncioRacha(texto) { rachaTexto = texto; rachaTimer = 100; }
 
+        function evaluarLogrosDurantePartida(time) {
+            const tiempoJugado = (time - tiempoInicioPartida) / 1000;
+            if (tiempoBajoVida >= 20) desbloquearLogro("cerca_abismo");
+            if (score >= 200 && health >= 80) desbloquearLogro("tanque_imparable");
+            if (doradasDestruidas >= 5) desbloquearLogro("fiebre_oro");
+            if (disparosRealizados === 0 && tiempoJugado >= 15) desbloquearLogro("pacifista_terco");
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (imgFondo.complete) ctx.drawImage(imgFondo, 0, 0, canvas.width, canvas.height);
+            
+            // ✨ EFECTO VISUAL CORREGIDO: El brillo arcoíris se aplica en tiempo real
+            if (invencibleTimer > 0) {
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = `hsl(${Date.now() % 360}, 100%, 50%)`;
+            }
             if (imgPlayer.complete) ctx.drawImage(imgPlayer, player.x, player.y, player.width, player.height);
+            ctx.shadowBlur = 0; // Apagar brillo para los demás elementos
 
+            // Dibujar balas
             ctx.fillStyle = "yellow"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 5));
             
+            // 🎨 DIBUJADO DE ENEMIGOS REPARADO (Agregada la caja azul)
             enemies.forEach(e => { 
                 if (e.tipo === 'dorada') {
                     if (imgEnemyDorado.complete) ctx.drawImage(imgEnemyDorado, e.x, e.y, e.size, e.size);
                     ctx.shadowBlur = 15; ctx.shadowColor = "#f1c40f";
                     ctx.fillStyle = "rgba(241, 196, 15, 0.1)"; ctx.fillRect(e.x, e.y, e.size, e.size);
                     ctx.shadowBlur = 0; 
-                } else { if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.size, e.size); }
+                } else if (e.tipo === 'azul') {
+                    if (imgEnemyAzul.complete) ctx.drawImage(imgEnemyAzul, e.x, e.y, e.size, e.size);
+                    ctx.shadowBlur = 15; ctx.shadowColor = "#3498db";
+                    ctx.fillStyle = "rgba(52, 152, 219, 0.15)"; ctx.fillRect(e.x, e.y, e.size, e.size);
+                    ctx.shadowBlur = 0;
+                } else if (e.tipo === 'explosiva') {
+                    if (imgEnemyExplosiva.complete && imgEnemyExplosiva.naturalWidth > 0) ctx.drawImage(imgEnemyExplosiva, e.x, e.y, e.size, e.size);
+                    else {
+                        ctx.fillStyle = "#e67e22";
+                        ctx.fillRect(e.x, e.y, e.size, e.size);
+                        ctx.fillStyle = "#fff";
+                        ctx.font = "bold 24px Arial";
+                        ctx.fillText("!", e.x + e.size / 2 - 6, e.y + e.size / 2 + 8);
+                    }
+                } else { 
+                    if (imgEnemy.complete) ctx.drawImage(imgEnemy, e.x, e.y, e.size, e.size); 
+                }
             });
             
             particles.forEach(p => { ctx.globalAlpha = p.vida; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); });
             ctx.globalAlpha = 1;
 
+            // Textos de interfaz
             ctx.fillStyle = "white"; ctx.font = "bold 20px Arial";
             ctx.fillText("Puntos: " + score, 20, 35);
             ctx.font = "14px Arial"; ctx.fillStyle = "#aaa";
             ctx.fillText("Velocidad: x" + multiplicadorDificultad.toFixed(2), 20, 55);
+
+            if (modoJuego === "aventura" && nivelAventuraActual) {
+                ctx.fillStyle = "#f1c40f";
+                ctx.fillText("Nivel " + nivelAventuraActual.id + ": " + nivelAventuraActual.mision, 20, 75);
+            }
 
             if (rachaTimer > 0) {
                 ctx.fillStyle = "#f1c40f"; ctx.font = "bold 24px Arial"; ctx.textAlign = "center";
                 ctx.fillText(rachaTexto, canvas.width / 2, 60); ctx.textAlign = "left"; 
             }
 
+            // Barra de vida
             ctx.fillStyle = "#333"; ctx.fillRect(canvas.width - 220, 20, 200, 18);
             ctx.fillStyle = health > 35 ? "#2ecc71" : "#e74c3c";
             ctx.fillRect(canvas.width - 220, 20, (Math.max(0, health) / 100) * 200, 18);
             ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(canvas.width - 220, 20, 200, 18);
 
+            // Pantalla de pausa estricta
             if (isPaused) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.65)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#2ecc71"; ctx.font = "bold 32px Arial"; ctx.textAlign = "center";
@@ -591,10 +992,15 @@
 
         function drawLoop(time) { update(time); draw(); requestAnimationFrame(drawLoop); }
         
+        configurarSelectorSkin();
         verificarUsuarioDelJuego(); 
         cargarLogrosGuardados();
         cargarLeaderboard(); 
         requestAnimationFrame(drawLoop);
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
+        }
     </script>
 </body>
 </html>

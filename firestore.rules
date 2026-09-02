@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboard/{entryId} {
+      allow read: if true;
+
+      function recordValido(data) {
+        return data.keys().hasOnly([
+          'nombre', 'puntos', 'fecha'
+        ])
+        && data.nombre is string
+        && data.nombre.size() >= 2
+        && data.nombre.size() <= 12
+        && data.puntos is number
+        && data.puntos >= 0
+        && data.puntos <= 1000000
+        && data.fecha is string
+        && data.fecha.size() <= 40;
+      }
+
+      allow create: if recordValido(request.resource.data);
+      allow update: if recordValido(request.resource.data)
+        && request.resource.data.puntos >= resource.data.puntos;
+      allow delete: if false;
+    }
+  }
+}
